@@ -1,0 +1,125 @@
+
+{\rtf1\ansi\deff0
+{\fonttbl {\f0 Courier;}}
+
+\f0\fs24
+# YOLOv11 AI Module Design Document
+
+## Overview
+The project integrates a YOLOv11-powered AI module into an existing video labeling tool. The system enables:
+1. **Real-Time Object Detection**:
+   - Automatically label video frames using YOLOv11.
+   - Dynamically adjust confidence thresholds during playback.
+2. **Feedback Loop**:
+   - Save auto-detected frames for review and corrections.
+   - Use corrections to retrain YOLOv11 iteratively, improving detection accuracy.
+
+---
+
+## Directory Structure
+project/
+\line │
+\line ├── # ONE SCRIPT TO LABEL THEM ALL.py   # Manual labeling GUI (unchanged).
+\line ├── # A SINGLE AI TO DETECT THEM.py     # YOLOv11-powered AI module.
+\line │
+\line ├── models/                             # Pre-trained and fine-tuned YOLOv11 models.
+\line │   ├── yolov11_base.pt                 # Pre-trained YOLOv11 weights.
+\line │   └── yolov11_finetuned.pt            # Fine-tuned YOLOv11 weights.
+\line │
+\line ├── data/                               # Shared input/output data.
+\line │   ├── raw_videos/                     # Raw videos for processing.
+\line │   ├── labeled_frames/                 # Ground-truth dataset (train/val splits).
+\line │   └── detections/                     # Auto-labeled frames for review.
+\line │
+\line └── requirements.txt                    # Python dependencies.
+
+---
+
+## Features
+1. **YOLOv11 Integration**:
+   - Load YOLOv11 weights for detection.
+   - Save detections to `data/detections/` for review.
+2. **Interactive Threshold Adjustment**:
+   - Adjust detection confidence dynamically via GUI or CLI.
+3. **Feedback and Retraining**:
+   - Correct labels and save to `data/labeled_frames/`.
+   - Retrain YOLOv11 with corrected data for better performance.
+4. **Batch Processing**:
+   - Process all videos in `data/raw_videos/` in a single command.
+   - Save results into organized subdirectories for each video.
+5. **Train/Val Splitting**:
+   - Automatically split corrected data into training and validation sets based on a configurable ratio.
+6. **Confidence Heatmaps**:
+   - Display heatmaps over frames to visualize detection confidence scores.
+7. **Annotation Review Dashboard**:
+   - Add a GUI to quickly review and approve/reject bounding boxes across multiple frames.
+8. **On-the-Fly Retraining**:
+   - Support live retraining of YOLO in the background while labeling continues.
+9. **Model Benchmarking**:
+   - Evaluate YOLO performance on a separate test dataset with mAP metrics.
+10. **TensorBoard Integration**:
+   - Visualize training progress, dataset statistics, and confidence thresholds.
+11. **Multi-Class Enhancements**:
+   - Add shortcuts for quick class selection and a histogram to show class frequency distributions.
+12. **Dataset Coverage Analyzer**:
+   - Highlight class imbalances and unannotated objects in frames.
+13. **Box Smoothing**:
+   - Use techniques like **Kalman filters** to ensure bounding boxes transition smoothly between frames.
+   - Reduces jitter for consistently detected objects across similar frames.
+14. **Streamlined Deployment**:
+   - Package the tool in a Docker container for quick setup on any machine.
+
+---
+
+## Workflow
+1. **Detection**:
+   - Load videos from `data/raw_videos/`.
+   - Detect objects in real time and save results to `data/detections/`.
+   - Apply box smoothing for consistent tracking of objects across frames.
+2. **Review and Correct**:
+   - User reviews detections and corrects bounding boxes.
+   - Save corrections to `data/labeled_frames/`.
+3. **Retraining**:
+   - Use corrected labels to retrain YOLOv11.
+   - Save updated weights to `models/yolov11_finetuned.pt`.
+4. **Repeat**:
+   - Reload fine-tuned weights for improved detection accuracy.
+
+---
+
+## Technical Details
+1. **Libraries**:
+   - PyTorch (YOLOv11), OpenCV, Requests, PyQt5 (optional for GUI).
+2. **Hardware**:
+   - NVIDIA RTX 3080 with CUDA for GPU acceleration.
+3. **Key Parameters**:
+   - Confidence Threshold: Default `0.5`, adjustable via slider.
+
+---
+
+## Example Commands
+- **Batch Processing**:
+  ```bash
+  python # A SINGLE AI TO DETECT THEM.py --batch --input data/raw_videos/ --output data/detections/
+  ```
+- **Train YOLO**:
+  ```bash
+  python # A SINGLE AI TO DETECT THEM.py --retrain --data data/labeled_frames/ --output models/yolov11_finetuned.pt
+  ```
+- **Run YOLO-Assisted Labeling**:
+  ```bash
+  python # ONE SCRIPT TO LABEL THEM ALL.py --ai-mode --model models/yolov11_finetuned.pt
+  ```
+
+---
+
+## Future Improvements
+1. **OCR Integration**:
+   - Add text detection for extracting in-frame data such as stats or descriptions.
+2. **GUI Expansion**:
+   - Integrate detection, review, and corrections into a single user-friendly interface.
+3. **Multiple YOLO Models**:
+   - Add support for multiple YOLO versions or architectures.
+4. **Dynamic Class Augmentation**:
+   - Automatically suggest new object classes based on unrecognized detections.
+}
